@@ -4,15 +4,19 @@ function initSketchCanvas(canvas, onChange){
   let drawing = false, erasing = false, undoStack = [], last = null;
 
   function sizeCanvas(){
-    const rect = canvas.getBoundingClientRect();
+    let rect = canvas.getBoundingClientRect();
+    // Fallback: jika elemen belum terlihat (rect = 0), ukur dari parent agar canvas tetap berukuran nyata.
+    if(!rect.width && canvas.parentElement) rect = canvas.parentElement.getBoundingClientRect();
     const dpr = Math.min(window.devicePixelRatio||1, 2);
+    const w = Math.max(rect.width, 100);
+    const h = Math.max(rect.height || 280, 250, Math.min(350, w * 0.62)); // tinggi CSS 250-350px
     const data = canvas.toDataURL ? snapshot() : null;
-    canvas.width = rect.width * dpr;
-    canvas.height = Math.round(rect.width * 0.62) * dpr;
-    canvas.style.height = Math.round(rect.width * 0.62) + 'px';
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.height = h + 'px';
     ctx.scale(dpr, dpr);
     paintBg();
-    if(data){ const img = new Image(); img.onload = ()=> ctx.drawImage(img,0,0,rect.width,rect.height); img.src = data; }
+    if(data){ const img = new Image(); img.onload = ()=> ctx.drawImage(img,0,0,w,h); img.src = data; }
   }
   function paintBg(){ ctx.fillStyle = '#f5f1e6'; ctx.fillRect(0,0,canvas.width,canvas.height); }
   function snapshot(){ return canvas.toDataURL('image/png'); }

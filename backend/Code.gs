@@ -235,14 +235,31 @@ function scoreThink_(r){ return clamp_(Number(r.relevance||0),5)+clamp_(Number(r
 function scoreInvent_(r){ return clamp_(Number(r.problem||0),5)+clamp_(Number(r.creativity||0),5)+clamp_(Number(r.solution||0),10)+clamp_(Number(r.benefit||0),5); }
 function scoreFinal_(r){ return clamp_(Number(r.relevance||0),5)+clamp_(Number(r.reasoning||0),5)+clamp_(Number(r.solution||0),5); }
 
-/** Modular: simpan feedback AI ke sheet DETAIL_AI */
+/** Modular: simpan feedback AI ke sheet DETAIL_AI.
+ *  LockService HANYA di sekitar penulisan baris (bukan di sekitar callGemini_),
+ *  agar append dari 36 siswa bersamaan tidak saling menimpa. */
 function saveAIFeedback_(name, klass, mission, score, result){
   var sh = getOrCreateSheet_(SH_DETAIL_AI, DETAIL_AI_HEADERS);
-  sh.appendRow([ new Date(), name||'', klass||'', mission, score,
-    result.feedback || result.good || '', result.good||'', result.improve||'', result.followup||'' ]);
+  var row = [ new Date(), name||'', klass||'', mission, score,
+    result.feedback || result.good || '', result.good||'', result.improve||'', result.followup||'' ];
+  var lock = null;
+  if(typeof LockService !== 'undefined') lock = LockService.getScriptLock();
+  if(lock) lock.waitLock(10000);
+  try{
+    sh.appendRow(row);
+  } finally {
+    if(lock) lock.releaseLock();
+  }
 }
 
 /* ================= Gemini API ================= */
+/** Backoff exponential dengan jitter di backend: ~1.5s → ~3s → ~6s */
+function backoffSleep_(attempt){
+  if(typeof Utilities !== 'undefined'){
+    Utilities.sleep(Math.round(1500 * Math.pow(2, attempt) + Math.random() * 750));
+  }
+}
+
 function callGemini_(userPrompt){
   var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + AI_MODEL + ':generateContent?key=' + AI_API_KEY;
   var sys = 'You are an educational AI mentor for Indonesian Madrasah Aliyah students.\n' +
@@ -258,14 +275,30 @@ function callGemini_(userPrompt){
     contents: [{ role:'user', parts:[{ text: userPrompt }] }],
     generationConfig: { temperature:0.4, maxOutputTokens:1024, responseMimeType:'application/json' }
   };
-  var res = UrlFetchApp.fetch(url, {
-    method:'post', contentType:'application/json',
-    payload: JSON.stringify(payload), muteHttpExceptions:true
-  });
-  if(res.getResponseCode() !== 200) throw new Error('AI API error ' + res.getResponseCode());
-  var j = JSON.parse(res.getContentText());
-  return (j && j.candidates && j.candidates[0] && j.candidates[0].content &&
-          j.candidates[0].content.parts && j.candidates[0].content.parts[0].text) || '';
+  // Retry maksimal 3 percobaan tambahan untuk 429/500/502/503/504 (kuota Gemini terbatas
+  // saat dipakai 36 siswa bersamaan). TIDAK menggunakan LockService di sini agar
+  // request AI tidak antre secara serial.
+  var MAX_RETRIES = 3;
+  var code = 0, body = '';
+  for(var attempt = 0; attempt <= MAX_RETRIES; attempt++){
+    var res = UrlFetchApp.fetch(url, {
+      method:'post', contentType:'application/json',
+      payload: JSON.stringify(payload), muteHttpExceptions:true
+    });
+    code = res.getResponseCode();
+    body = res.getContentText() || '';
+    if(code === 200){
+      var j = JSON.parse(body);
+      return (j && j.candidates && j.candidates[0] && j.candidates[0].content &&
+              j.candidates[0].content.parts && j.candidates[0].content.parts[0].text) || '';
+    }
+    if((code === 429 || code === 500 || code === 502 || code === 503 || code === 504) && attempt < MAX_RETRIES){
+      backoffSleep_(attempt);
+      continue;
+    }
+    break;
+  }
+  throw new Error('AI API error ' + code + (body.indexOf('RESOURCE_EXHAUSTED') >= 0 ? ' (RESOURCE_EXHAUSTED)' : ''));
 }
 function extractJson_(text){
   try{ return JSON.parse(text); }catch(e){}
