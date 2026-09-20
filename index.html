@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>1001 Inventions — The Muslim Science Mission</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<section id="view-login" class="view active">
+  <div class="login-wrap">
+    <div class="crest" aria-hidden="true">
+      <svg viewBox="0 0 64 64" width="72" height="72"><circle cx="32" cy="32" r="30" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M32 6 L38 32 L32 58 L26 32 Z" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="32" cy="32" r="9" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M10 32 h44 M32 10 v6 M32 48 v6" stroke="currentColor" stroke-width="1"/></svg>
+    </div>
+    <h1 class="title-main">1001 INVENTIONS</h1>
+    <h2 class="title-sub">THE MUSLIM SCIENCE MISSION</h2>
+    <p class="tagline">Temukan. Pahami. Kembangkan.</p>
+    <p class="role-note">Kamu adalah <strong>INNOVATION DETECTIVE</strong>. Selesaikan 5 misi untuk menjadi penemu.</p>
+
+    <div class="card login-card">
+      <label for="inp-name">Nama</label>
+      <input type="text" id="inp-name" placeholder="Tulis namamu" autocomplete="name">
+      <label for="inp-class">Kelas</label>
+      <select id="inp-class">
+        <option value="">Pilih kelas</option>
+        <option value="XII A">XII A</option><option value="XII B">XII B</option><option value="XII C">XII C</option><option value="XII D">XII D</option>
+        <option value="XII E">XII E</option><option value="XII F">XII F</option><option value="XII G">XII G</option><option value="XII H">XII H</option>
+        <option value="XII I">XII I</option><option value="XII J">XII J</option><option value="XII K">XII K</option><option value="XII L">XII L</option>
+      </select>
+      <button id="btn-start" class="btn btn-primary btn-lg">MULAI MISI</button>
+      <button id="btn-continue" class="btn btn-ghost btn-lg hidden">LANJUTKAN MISI</button>
+    </div>
+    <a href="#teacher" class="teacher-link" id="link-teacher">Teacher Result</a>
+  </div>
+</section>
+
+<!-- ============ MISSION HUB ============ -->
+<section id="view-hub" class="view">
+  <header class="app-header">
+    <div>
+      <div class="hdr-brand">1001 INVENTIONS</div>
+      <div class="hdr-detective" id="hub-detective">INNOVATION DETECTIVE</div>
+    </div>
+    <div class="hdr-right">
+      <div class="xp-pill"><span id="xp-value">0</span> XP</div>
+      <div class="level-pill" id="level-value">Explorer</div>
+    </div>
+  </header>
+  <div class="hub-body">
+    <div class="profile-line"><span id="hub-name">—</span> · <span id="hub-class">—</span></div>
+    <div class="progress-track" aria-label="Progress misi">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    <div id="mission-list" class="mission-list"></div>
+    <button id="btn-reset" class="btn btn-ghost btn-sm danger-ghost">Hapus progres di perangkat ini</button>
+  </div>
+</section>
+
+<!-- ============ MISSION VIEWS ============ -->
+<section id="view-mission" class="view">
+  <header class="app-header sub">
+    <button class="btn-back" id="btn-back-hub" aria-label="Kembali">&#8592;</button>
+    <div class="hdr-brand small">1001 INVENTIONS</div>
+  </header>
+  <div id="mission-content" class="mission-body"></div>
+</section>
+
+<!-- ============ FINAL RESULT ============ -->
+<section id="view-result" class="view">
+  <div id="result-content" class="mission-body"></div>
+</section>
+
+<!-- ============ TEACHER ============ -->
+<section id="view-teacher" class="view">
+  <header class="app-header sub">
+    <button class="btn-back" id="btn-back-teacher" aria-label="Kembali">&#8592;</button>
+    <div class="hdr-brand small">TEACHER RESULT</div>
+  </header>
+  <div class="mission-body">
+    <label for="teacher-filter" class="lbl-inline">Filter kelas</label>
+    <select id="teacher-filter"><option value="">Semua Kelas</option></select>
+    <div class="recap-cards" id="teacher-recap"></div>
+    <div class="table-wrap"><table id="teacher-table" class="tbl"></table></div>
+    <a id="btn-sheets" class="btn btn-primary" target="_blank" rel="noopener" href="#">OPEN GOOGLE SHEETS</a>
+  </div>
+</section>
+
+<!-- ============ TOAST & MODAL ============ -->
+<div id="toast" class="toast" role="status"></div>
+<div id="modal" class="modal hidden">
+  <div class="modal-box card">
+    <h3 id="modal-title">AI MENTOR</h3>
+    <div id="modal-body" class="modal-body"></div>
+    <div class="modal-actions" id="modal-actions"></div>
+  </div>
+</div>
+<div id="spinner" class="spinner hidden" aria-live="polite">
+  <div class="spin-ring"></div><div class="spin-text" id="spinner-text">Menghubungi AI Mentor…</div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/state.js"></script>
+<script src="js/quiz-data.js"></script>
+<script src="js/protect.js"></script>
+<script src="js/canvas.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
