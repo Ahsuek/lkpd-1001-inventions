@@ -98,9 +98,68 @@ T('teacher rows', t.rows.length, 1);
 T('teacher name', t.rows[0].name, 'Umar');
 T('teacher total', t.rows[0].total, 96);
 const rec = getClassRecap_('');
+
+/* ===== REGRESSION: payload frontend nyata =====
+ * Bug: frontend lama mengirim aiFeedback TANPA komponen numerik
+ * (hanya good/improve/followup), padahal backend menghitung ulang
+ * Think/Invention/Final dari komponen tersebut → selalu 0.
+ * W&H & Discover benar karena dihitung dari `answers`. */
+// 1) Bentuk LAMA (komponen dibuang) → Think/Invent/Final 0, total = W&H+Discover
+const legacyPayload = JSON.parse(JSON.stringify(payload));
+legacyPayload.name = 'Legacy Student';
+legacyPayload.aiFeedback = { think:{good:'g',improve:'i',followup:'f'}, invent:{good:'g',improve:'i',scientist_connection:'s',challenge:'c'}, final:{good:'g',improve:'i',followup:'f'} };
+const outL = saveStudentResult_(legacyPayload);
+T('legacy think=0', outL.scores.think, 0);
+T('legacy invent=0', outL.scores.invent, 0);
+T('legacy final=0', outL.scores.final, 0);
+T('legacy total=watch+discover', outL.total, outL.scores.watch+outL.scores.discover);
+
+// 2) Bentuk BARU (komponen numerik ikut dikirim, sesuai app.js setelah perbaikan) → skor lengkap
+const fixedPayload = JSON.parse(JSON.stringify(payload));
+fixedPayload.name = 'Fixed Student';
+fixedPayload.aiFeedback = {
+  think:{ relevance:5, argumentation:8, analysis:4, material_connection:5, good:'g', improve:'i', followup:'f' },
+  invent:{ problem:4, creativity:4, solution:8, benefit:4, good:'g', improve:'i', scientist_connection:'s', challenge:'c' },
+  final:{ relevance:4, reasoning:5, solution:4, good:'g', improve:'i', followup:'f' }
+};
+const outF = saveStudentResult_(fixedPayload);
+T('fixed think=22', outF.scores.think, 22);
+T('fixed invent=20', outF.scores.invent, 20);
+T('fixed final=13', outF.scores.final, 13);
+T('fixed total=86', outF.total, 86);
+T('fixed predikat', outF.predikat, 'Baik');
+
+// 3) Data kosong tetap aman: aiFeedback kosong → skor 0, tanpa error
+const emptyPayload = JSON.parse(JSON.stringify(payload));
+emptyPayload.name = 'Empty Student';
+emptyPayload.aiFeedback = {};
+const outE = saveStudentResult_(emptyPayload);
+T('empty think=0', outE.scores.think, 0);
+T('empty invent=0', outE.scores.invent, 0);
+T('empty final=0', outE.scores.final, 0);
+T('empty safe total', outE.total, outE.scores.watch+outE.scores.discover);
+T('empty predikat', outE.predikat, 'Perlu Pengembangan');
+
+// 4) Teacher data membaca siswa dengan mapping field yang benar
+const tAll = getTeacherData_();
 T('recap count', rec.count, 1);
 T('recap max', rec.max, 96);
 T('recap baik', rec.b, 0); T('recap sb', rec.sb, 1);
+const find = n => tAll.rows.find(r=>r.name===n);
+const rL = find('Legacy Student'), rF = find('Fixed Student'), rE = find('Empty Student');
+T('teacher legacy think=0', rL.think, 0);
+T('teacher legacy total=w+d', rL.total, rL.watch+rL.discover);
+T('teacher fixed name', rF.name, 'Fixed Student');
+T('teacher fixed klass', rF.klass, 'XI MIPA 1');
+T('teacher fixed watch', rF.watch, 15);
+T('teacher fixed discover', rF.discover, 16);
+T('teacher fixed think', rF.think, 22);
+T('teacher fixed invent', rF.invent, 20);
+T('teacher fixed final', rF.final, 13);
+T('teacher fixed total', rF.total, 86);
+T('teacher fixed predikat', rF.predikat, 'Baik');
+T('teacher fixed invention', rF.invention, 'SmartWudu');
+T('teacher empty safe', rE.total, rE.watch+rE.discover);
 
 console.log(fails===0 ? '\nBACKEND TESTS PASSED' : '\n'+fails+' FAILED');
 process.exit(fails===0?0:1);

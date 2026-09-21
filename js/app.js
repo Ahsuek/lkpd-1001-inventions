@@ -348,7 +348,8 @@ function renderThink(root){
       }).then(res=>{
         hideSpinner();
         const think = clamp((res.relevance||0)+(res.argumentation||0)+(res.analysis||0)+(res.material_connection||0), 25);
-        S.aiFeedback.think = { good:res.good||'', improve:res.improve||'', followup:res.followup||'' };
+        // Sertakan komponen numerik — backend menghitung ulang Think dari komponen ini
+        S.aiFeedback.think = { relevance:res.relevance||0, argumentation:res.argumentation||0, analysis:res.analysis||0, material_connection:res.material_connection||0, good:res.good||'', improve:res.improve||'', followup:res.followup||'' };
         setMissionScore('think', think, 25); saveState();
         renderThinkAI(root, S.aiFeedback.think);
         $('#btn-think-done').classList.remove('hidden');
@@ -442,7 +443,8 @@ function renderInvent(root){
       }).then(res=>{
         hideSpinner();
         const sc = clamp((res.problem||0)+(res.creativity||0)+(res.solution||0)+(res.benefit||0), 25);
-        S.aiFeedback.invent = { good:res.good||'', improve:res.improve||'', scientist_connection:res.scientist_connection||'', challenge:res.challenge||'' };
+        // Sertakan komponen numerik — backend menghitung ulang Invention dari komponen ini
+        S.aiFeedback.invent = { problem:res.problem||0, creativity:res.creativity||0, solution:res.solution||0, benefit:res.benefit||0, good:res.good||'', improve:res.improve||'', scientist_connection:res.scientist_connection||'', challenge:res.challenge||'' };
         setMissionScore('invent', sc, 25); saveState();
         renderInventAI(root, inv, S.aiFeedback.invent);
         $('#btn-inv-done').classList.remove('hidden');
@@ -534,7 +536,8 @@ function renderFinal(root){
       }).then(res=>{
         hideSpinner();
         const sc = clamp((res.relevance||0)+(res.reasoning||0)+(res.solution||0), 15);
-        S.aiFeedback.final = { good:res.good||'', improve:res.improve||'', followup:res.followup||'' };
+        // Sertakan komponen numerik — backend menghitung ulang Final dari komponen ini
+        S.aiFeedback.final = { relevance:res.relevance||0, reasoning:res.reasoning||0, solution:res.solution||0, good:res.good||'', improve:res.improve||'', followup:res.followup||'' };
         setMissionScore('final', sc, 15); saveState();
         $('#final-ai-result').innerHTML = renderAICard('AI MENTOR', [['YANG SUDAH BAGUS',res.good],['YANG BISA DIKEMBANGKAN',res.improve],['PERTANYAAN LANJUTAN',res.followup]]);
         $('#btn-finish').classList.remove('hidden');
